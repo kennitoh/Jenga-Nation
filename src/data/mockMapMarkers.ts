@@ -1,0 +1,147 @@
+export interface Marker {
+    id: number;
+    title: string;
+    categoryId: string;
+    status: "Pending" | "In Progress" | "Resolved";
+    location: string;
+    position: { top: string; left: string };
+    votes: number;
+}
+
+export const mockMapMarkers: Marker[] = [
+    {
+        id: 1,
+        title: "Pothole on Main Road",
+        categoryId: "infrastructure-roads",
+        status: "Pending",
+        location: "Downtown Nairobi",
+        position: { top: "35%", left: "45%" },
+        votes: 45,
+    },
+    {
+        id: 2,
+        title: "Water Supply Interruption",
+        categoryId: "water-sanitation",
+        status: "In Progress",
+        location: "Kibera",
+        position: { top: "55%", left: "30%" },
+        votes: 67,
+    },
+    {
+        id: 3,
+        title: "School Needs Renovation",
+        categoryId: "education-schools",
+        status: "Pending",
+        location: "Eastlands",
+        position: { top: "45%", left: "65%" },
+        votes: 89,
+    },
+    {
+        id: 4,
+        title: "Clinic Equipment Shortage",
+        categoryId: "healthcare",
+        status: "In Progress",
+        location: "Westlands",
+        position: { top: "25%", left: "55%" },
+        votes: 34,
+    },
+    {
+        id: 5,
+        title: "Garbage Collection Missed",
+        categoryId: "waste-environment",
+        status: "Resolved",
+        location: "Parklands",
+        position: { top: "65%", left: "50%" },
+        votes: 23,
+    },
+    {
+        id: 6,
+        title: "Street Light Not Working",
+        categoryId: "public-utilities",
+        status: "Pending",
+        location: "Karen",
+        position: { top: "70%", left: "35%" },
+        votes: 12,
+    },
+    {
+        id: 7,
+        title: "Bus Stop Needs Shelter",
+        categoryId: "transportation",
+        status: "Pending",
+        location: "CBD",
+        position: { top: "40%", left: "48%" },
+        votes: 56,
+    },
+    {
+        id: 8,
+        title: "Blocked Drainage",
+        categoryId: "water-sanitation",
+        status: "In Progress",
+        location: "South B",
+        position: { top: "60%", left: "55%" },
+        votes: 15,
+    },
+    {
+        id: 9,
+        title: "Public Toilet Construction",
+        categoryId: "water-sanitation",
+        status: "Pending",
+        location: "Gikomba",
+        position: { top: "38%", left: "52%" },
+        votes: 78,
+    },
+    {
+        id: 10,
+        title: "Illegal Dumping Site",
+        categoryId: "waste-environment",
+        status: "Pending",
+        location: "Dandora",
+        position: { top: "42%", left: "70%" },
+        votes: 112,
+    },
+    {
+        id: 11,
+        title: "Power Outage Frequency",
+        categoryId: "energy",
+        status: "In Progress",
+        location: "Imara Daima",
+        position: { top: "62%", left: "60%" },
+        votes: 41,
+    },
+    {
+        id: 12,
+        title: "Broken Traffic Lights",
+        categoryId: "infrastructure",
+        status: "Pending",
+        location: "Kilimani",
+        position: { top: "50%", left: "40%" },
+        votes: 29,
+    },
+    {
+        id: 13,
+        title: "Library Renovation",
+        categoryId: "education",
+        status: "Resolved",
+        location: "Langata",
+        position: { top: "75%", left: "45%" },
+        votes: 95,
+    },
+    {
+        id: 14,
+        title: "Youth Center Equipment",
+        categoryId: "youth",
+        status: "Pending",
+        location: "Embakasi",
+        position: { top: "55%", left: "75%" },
+        votes: 60,
+    },
+    {
+        id: 15,
+        title: "Market Stall Repairs",
+        categoryId: "economic-development",
+        status: "In Progress",
+        location: "Toi Market",
+        position: { top: "58%", left: "38%" },
+        votes: 88,
+    }
+];
