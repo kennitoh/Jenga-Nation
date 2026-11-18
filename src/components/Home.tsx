@@ -15,7 +15,11 @@ import {
   CheckCircle2,
   Award,
   Settings,
-  Shield
+  Shield,
+  Bell,
+  MapPin,
+  ThumbsUp,
+  MessageSquare
 } from 'lucide-react';
 import { Card } from './ui/Card';
 import { Badge } from './ui/badge';
@@ -23,15 +27,25 @@ import { useTranslations } from '../utils/translations';
 import { useTheme } from '../contexts/ThemeContext';
 import { getCategoryById } from '../config/categories';
 import { Screen } from '../types';
+import {
+  LiveIssue,
+  fetchIssues,
+  fetchPlatformStats,
+  fetchUnreadCount,
+  relativeTime,
+  statusColor,
+  statusLabel
+} from '../lib/issues';
 
 interface HomeProps {
   userName: string;
   userRole: string;
   onNavigate: (screen: Screen) => void;
   isProfileComplete: boolean;
+  onSelectIssue?: (id: number) => void;
 }
 
-const Home: React.FC<HomeProps> = ({ userName, userRole, onNavigate, isProfileComplete }) => {
+const Home: React.FC<HomeProps> = ({ userName, userRole, onNavigate, isProfileComplete, onSelectIssue }) => {
   const { language } = useTheme();
   const t = useTranslations(language);
 
@@ -40,6 +54,8 @@ const Home: React.FC<HomeProps> = ({ userName, userRole, onNavigate, isProfileCo
     activeIssues: 0,
     completedProjects: 0
   });
+  const [reports, setReports] = useState<LiveIssue[]>([]);
+  const [unread, setUnread] = useState(0);
 
   useEffect(() => {
     fetchDashboardData();
@@ -70,18 +86,25 @@ const Home: React.FC<HomeProps> = ({ userName, userRole, onNavigate, isProfileCo
       })));
     }
 
-    // 2. Fetch Stats
-    const { count: issueCount } = await supabase
-      .from('issues')
-      .select('*', { count: 'exact', head: true })
-      .neq('status', 'Resolved'); // Active issues
+    // 2. Fetch Stats (live view first, then the previous queries)
+    const live = await fetchPlatformStats();
+    let issueCount: number | null = live ? live.activeIssues : null;
+    let projectCount: number | null = live ? live.completedProjects : null;
 
-    const { count: projectCount } = await supabase
-      .from('projects')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'Completed');
+    if (!live) {
+      const issues = await supabase
+        .from('issues')
+        .select('*', { count: 'exact', head: true })
+        .neq('status', 'Resolved'); // Active issues
+      const projects = await supabase
+        .from('projects')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'Completed');
+      issueCount = issues.count;
+      projectCount = projects.count;
+    }
 
-    // Use DB stats if available, otherwise mock stats
+    // Use DB stats if available, otherwise sample stats
     const finalIssueCount = issueCount || mockReports.filter(r => r.status !== 'Resolved').length;
     const finalProjectCount = projectCount || mockProjects.filter(p => p.status === 'Completed').length;
 
@@ -89,6 +112,11 @@ const Home: React.FC<HomeProps> = ({ userName, userRole, onNavigate, isProfileCo
       activeIssues: finalIssueCount,
       completedProjects: finalProjectCount
     });
+
+    // 3. Latest community reports + unread notifications
+    const [latest, unreadCount] = await Promise.all([fetchIssues(3), fetchUnreadCount()]);
+    setReports(latest);
+    setUnread(unreadCount);
   };
 
   return (
@@ -100,12 +128,26 @@ const Home: React.FC<HomeProps> = ({ userName, userRole, onNavigate, isProfileCo
             <img src={logo} alt={t.appName} className="h-10 w-auto" />
             <p className="text-slate-600 text-sm">{t.tagline}</p>
           </div>
-          <button
-            onClick={() => onNavigate('settings')}
-            className="p-2 hover:bg-slate-100 rounded-full transition-colors"
-          >
-            <Settings className="w-6 h-6 text-slate-600" />
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => onNavigate('notifications')}
+              className="p-2 hover:bg-slate-100 rounded-full transition-colors relative"
+              aria-label="Notifications"
+            >
+              <Bell className="w-6 h-6 text-slate-600" />
+              {unread > 0 && (
+                <span className="absolute top-0 right-0 min-w-[18px] h-[18px] px-1 rounded-full bg-[#800020] text-white text-[10px] font-bold flex items-center justify-center">
+                  {unread > 9 ? '9+' : unread}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => onNavigate('settings')}
+              className="p-2 hover:bg-slate-100 rounded-full transition-colors"
+            >
+              <Settings className="w-6 h-6 text-slate-600" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -234,6 +276,41 @@ const Home: React.FC<HomeProps> = ({ userName, userRole, onNavigate, isProfileCo
             </div>
           </Card>
         </div>
+
+        {/* Latest community reports (live) */}
+        {reports.length > 0 && onSelectIssue && (
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-slate-800">Latest Community Reports</h3>
+              <button
+                onClick={() => onNavigate('issues')}
+                className="text-sm font-medium text-[#800020] hover:underline"
+              >
+                View all
+              </button>
+            </div>
+            <div className="space-y-3">
+              {reports.map((issue) => (
+                <Card
+                  key={issue.id}
+                  className="p-4 hover:bg-slate-50 transition-colors cursor-pointer"
+                  onClick={() => onSelectIssue(issue.id)}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <h4 className="text-slate-800 font-medium">{issue.title}</h4>
+                    <Badge className={`shrink-0 ${statusColor(issue.status)}`}>{statusLabel(issue.status)}</Badge>
+                  </div>
+                  <div className="flex items-center gap-4 mt-2 text-xs text-slate-500">
+                    <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {issue.location}</span>
+                    <span className="flex items-center gap-1"><ThumbsUp className="w-3 h-3" /> {issue.upvotes}</span>
+                    <span className="flex items-center gap-1"><MessageSquare className="w-3 h-3" /> {issue.commentsCount}</span>
+                    <span className="ml-auto">{relativeTime(issue.createdAt)}</span>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Recent Updates */}
         <div>

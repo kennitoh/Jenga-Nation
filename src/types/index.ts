@@ -22,7 +22,9 @@ export type Screen =
   | "alerts"
   | "profile-setup"
   | "post-project"
-  | "national-revenue";
+  | "national-revenue"
+  | "issues"
+  | "notifications";
 
 export interface User {
   id: number;

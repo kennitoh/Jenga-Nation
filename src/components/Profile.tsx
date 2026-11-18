@@ -58,7 +58,8 @@ const Profile: React.FC<ProfileProps> = ({ onBack, userRole = "citizen", isProfi
     const [activeTab, setActiveTab] = useState("activity");
 
     // Mock Data
-    const contributionScore = 1250;
+    const livePoints = (profileData as any).points;
+    const contributionScore = typeof livePoints === 'number' ? livePoints : 1250;
     const currentStreak = 5;
     const maxStreak = 12;
 

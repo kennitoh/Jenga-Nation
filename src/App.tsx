@@ -27,6 +27,8 @@ import Settings from './components/Settings';
 import BottomNav from './components/BottomNav';
 import PostProject from './components/PostProject';
 import NationalRevenue from './components/NationalRevenue';
+import IssuesFeed from './components/IssuesFeed';
+import Notifications from './components/Notifications';
 
 function AppContent() {
   const [currentScreen, setCurrentScreen] = useState<Screen>("auth");
@@ -36,6 +38,8 @@ function AppContent() {
   const [userRole, setUserRole] = useState("citizen");
   const [isProfileComplete, setIsProfileComplete] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+  const [selectedIssueId, setSelectedIssueId] = useState<number | null>(null);
+  const [issueReturnScreen, setIssueReturnScreen] = useState<Screen>("home");
 
   useEffect(() => {
     // Check active session
@@ -110,6 +114,21 @@ function AppContent() {
     setCurrentScreen("project-details");
   };
 
+  const handleIssueSelect = (id: number, from: Screen = "issues") => {
+    setSelectedIssueId(id);
+    setIssueReturnScreen(from);
+    setCurrentScreen("issue-details");
+  };
+
+  // Navigation used by Home: opening the sample issue (from news items) clears any selected real issue.
+  const handleHomeNavigate = (screen: Screen) => {
+    if (screen === "issue-details") {
+      setSelectedIssueId(null);
+      setIssueReturnScreen("home");
+    }
+    setCurrentScreen(screen);
+  };
+
   const goBack = () => {
     setCurrentScreen("home");
   };
@@ -119,7 +138,7 @@ function AppContent() {
       case "auth": return <Auth onComplete={handleAuthComplete} />;
       case "profile-setup": return <ProfileSetup onComplete={handleProfileComplete} />;
       case "region": return <RegionSelector onBack={() => setCurrentScreen("auth")} onSelect={(r) => { setUserRegion(r); setCurrentScreen("home"); }} />;
-      case "home": return <Home userName={userName} userRole={userRole} onNavigate={setCurrentScreen} isProfileComplete={isProfileComplete} />;
+      case "home": return <Home userName={userName} userRole={userRole} onNavigate={handleHomeNavigate} isProfileComplete={isProfileComplete} onSelectIssue={(id) => handleIssueSelect(id, "home")} />;
       case "report": return <ReportIssue onBack={goBack} onSettings={() => setCurrentScreen("settings")} />;
       case "post-project": return <PostProject onBack={goBack} onSettings={() => setCurrentScreen("settings")} />;
       case "map": return <MapView onBack={goBack} onSettings={() => setCurrentScreen("settings")} />;
@@ -136,7 +155,9 @@ function AppContent() {
       case "support": return <Support onBack={goBack} />;
       case "settings": return <Settings onBack={goBack} />;
       case "news": return <News onBack={goBack} />;
-      case "issue-details": return <IssueDetails onBack={goBack} onSettings={() => setCurrentScreen("settings")} />;
+      case "issue-details": return <IssueDetails issueId={selectedIssueId} onBack={() => { setSelectedIssueId(null); setCurrentScreen(issueReturnScreen); }} onSettings={() => setCurrentScreen("settings")} />;
+      case "issues": return <IssuesFeed onBack={goBack} onSelectIssue={(id) => handleIssueSelect(id, "issues")} onReport={() => setCurrentScreen(isProfileComplete ? "report" : "profile")} />;
+      case "notifications": return <Notifications onBack={goBack} onOpenIssue={(id) => handleIssueSelect(id, "notifications")} />;
       case "partner": return <PartnerPortal onBack={goBack} />;
       case "national-revenue": return <NationalRevenue onBack={goBack} onSettings={() => setCurrentScreen("settings")} />;
       case "alerts": return <Alerts onBack={goBack} />;

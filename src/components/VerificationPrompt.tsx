@@ -38,8 +38,9 @@ const VerificationPrompt: React.FC<VerificationPromptProps> = ({ user, onVerific
             throw uploadError;
         }
 
-        const { data } = supabase.storage.from('verification-docs').getPublicUrl(filePath);
-        return data.publicUrl;
+        // The bucket is private, so store the file path (not a public link).
+        // Verifiers open it with a short-lived signed URL.
+        return filePath;
     };
 
     const handleSubmit = async () => {
