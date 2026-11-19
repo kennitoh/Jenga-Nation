@@ -77,6 +77,7 @@ const ReportIssue: React.FC<ReportIssueProps> = ({ onBack, onSettings }) => {
                 description,
                 category,
                 location,
+                subcategory: subcategory || null,
                 reporter_id: isAnonymous ? null : (user?.id || null),
                 status: 'Pending',
                 // images: [] // Handle image upload properly in future iterations
@@ -90,9 +91,12 @@ const ReportIssue: React.FC<ReportIssueProps> = ({ onBack, onSettings }) => {
             setTimeout(() => {
                 if (onBack) onBack();
             }, 3000); // Wait 3 seconds before going back
-        } catch (error) {
+        } catch (error: any) {
             console.error("Failed to submit report:", error);
-            alert("Failed to submit report. Please try again.");
+            const message: string = error?.message || '';
+            alert(message.startsWith('Report limit reached')
+                ? message
+                : "Failed to submit report. Please try again.");
         } finally {
             setIsSubmitting(false);
         }

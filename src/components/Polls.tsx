@@ -270,16 +270,7 @@ const PollCard: React.FC<{ poll: Poll; readonly?: boolean; onVoteCast: () => voi
 
                 if (voteError) throw voteError;
 
-                // 2. Increment Count visually and in DB directly
-                const optionNum = parseInt(selectedOption);
-                const option = poll.options.find(o => parseInt(o.id) === optionNum || o.id === selectedOption);
-                if (option) {
-                    await supabase
-                        .from('poll_options')
-                        .update({ votes: option.votes + 1 })
-                        .eq('id', optionNum);
-                }
-
+                // 2. The database counts the vote (trigger on poll_votes); just refresh.
                 onVoteCast();
 
             } catch (err) {
